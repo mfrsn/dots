@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# Simple script to set various gsettings.
+
+usage() {
+    echo "usage: ubuntu_setup [-w num] [-p profile]"
+}
+
+num_ws=''
+profile=''
+
+while [ "$1" != "" ]; do
+    case $1 in
+        -w)
+            shift
+            num_ws=$1
+            ;;
+        -p)
+            shift
+            profile=$1
+            ;;
+        *)
+            usage
+            exit 1
+    esac
+    shift
+done
+
+desktop_settings() {
+    # GNOME shell settings
+    gsettings set org.gnome.shell.extensions.dash-to-dock dash-max-icon-size "32"
+    gsettings set org.gnome.shell.extensions.dash-to-dock dock-fixed "true"
+    gsettings set org.gnome.shell.extensions.dash-to-dock dock-position "'BOTTOM'"
+    gsettings set org.gnome.shell.extensions.dash-to-dock isolate-workspaces "true"
+    gsettings set org.gnome.shell.app-switcher current-workspace-only "true"
+    gsettings set org.gnome.shell favorite-apps "['org.gnome.Nautilus.desktop']"
+
+    # GNOME desktop settings
+    gsettings set org.gnome.desktop.wm.preferences audible-bell "false"
+    gsettings set org.gnome.desktop.calendar show-weekdate "true"
+    gsettings set org.gnome.desktop.interface clock-show-date "true"
+    gsettings set org.gnome.desktop.interface enable-animations "false"
+    gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'se+nodeadkeys')]"
+
+    # Make sure to use static workspaces, otherwise the code below won't work.
+    gsettings set org.gnome.mutter dynamic-workspaces "false"
+
+    # Spawn file browser
+    gsettings set org.gnome.settings-daemon.plugins.media-keys home "['<Super>e']"
+
+    # Workspace keybindings. NOTE: Removes default dash-to-dock keybindings.
+    if [ "$num_ws" -ge 1 ] && [ "$num_ws" -le 10 ]; then
+        gsettings set org.gnome.desktop.wm.preferences num-workspaces $num_ws
+        for i in $(seq 1 $num_ws); do
+            k=$((i % 10))
+            gsettings set org.gnome.shell.extensions.dash-to-dock app-shift-hotkey-$i "['']"
+            gsettings set org.gnome.shell.extensions.dash-to-dock app-hotkey-$i "['']"
+            gsettings set org.gnome.shell.keybindings switch-to-application-$i "['']"
+            gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-$i "['<Super>$k']"
+            gsettings set org.gnome.desktop.wm.keybindings move-to-workspace-$i "['<Shift><Super>$k']"
+        done
+    fi
+}
+
+terminal_settings() {
+    dconf load "/org/gnome/terminal/legacy/profiles:/$profile/" <<-EOF
+	[/]
+	audible-bell=false
+	background-color='rgb(40,40,40)'
+	bold-is-bright=true
+	cell-height-scale=1.0
+	cell-width-scale=1.0
+	default-size-columns=120
+	default-size-rows=30
+	foreground-color='rgb(235,219,178)'
+	palette=['rgb(40,40,40)', 'rgb(204,0,0)', 'rgb(152,151,26)', 'rgb(215,153,33)', 'rgb(69,133,136)', 'rgb(177,98,134)', 'rgb(104,157,106)', 'rgb(168,153,132)', 'rgb(146,131,116)', 'rgb(251,73,52)', 'rgb(184,187,38)', 'rgb(250,189,47)', 'rgb(131,165,152)', 'rgb(211,134,155)', 'rgb(142,192,124)', 'rgb(235,219,178)']
+	scrollbar-policy='never'
+	use-theme-colors=false
+	EOF
+}
+
+if [ ! -z "$profile" ]; then
+    terminal_settings
+fi
+
+if [ ! -z "$num_ws" ]; then
+    desktop_settings
+fi
