@@ -39,8 +39,13 @@ desktop_settings() {
     gsettings set org.gnome.desktop.wm.preferences audible-bell "false"
     gsettings set org.gnome.desktop.calendar show-weekdate "true"
     gsettings set org.gnome.desktop.interface clock-show-date "true"
-    gsettings set org.gnome.desktop.interface enable-animations "false"
+    if lsb_release -cs | grep -q 'jammy'; then
+        gsettings set org.gnome.desktop.interface enable-animations "true"
+    else
+        gsettings set org.gnome.desktop.interface enable-animations "false"
+    fi
     gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'se+nodeadkeys')]"
+    gsettings set org.gnome.desktop.session idle-delay 2700
 
     # Make sure to use static workspaces, otherwise the code below won't work.
     gsettings set org.gnome.mutter dynamic-workspaces "false"
