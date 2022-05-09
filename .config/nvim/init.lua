@@ -3,7 +3,7 @@
 --
 
 vim.opt.termguicolors = true
-vim.opt.background = 'dark'
+-- vim.opt.background = 'dark'
 vim.g['gruvbox_bold'] = 0
 vim.cmd('colorscheme gruvbox')
 
@@ -96,6 +96,15 @@ vim.api.nvim_create_autocmd('FileType', {
     vim.opt_local.comments:prepend(':///')
     vim.opt_local.formatoptions = { c = true, q = true, r = true, j = true }
     vim.opt_local.cinoptions = { 'g0', ':0', 'l1', '(0', 'Ws' }
+  end
+})
+
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'gitconfig',
+  group = ftaugroup,
+  callback = function()
+    vim.opt_local.expandtab = false
+    vim.opt_local.shiftwidth = 8
   end
 })
 
