@@ -1,3 +1,6 @@
+autoload -U select-word-style
+select-word-style bash
+
 autoload -Uz colors compinit promptinit
 colors
 compinit
@@ -6,11 +9,26 @@ promptinit
 # Emacs style keybindings
 bindkey -e
 
+# VCS info {{{
+autoload -Uz vcs_info
+
+zstyle ':vcs_info:*' enable git
+zstyle ':vcs_info:git:*' formats '%F{3}(%b)%f'
+precmd() {
+    vcs_info
+}
+
+setopt PROMPT_SUBST
+# }}}
+
 ## Prompt
 # ➔ ➤
-PROMPT="
-%{$fg_bold[red]%} » %{$reset_color%}"
-RPROMPT="%{$fg_bold[blue]%}%~%{$reset_color%}"
+# PROMPT="
+# # %{$fg_bold[red]%} » %{$reset_color%}"
+# RPROMPT="%{$fg_bold[blue]%}%~%{$reset_color%}"
+PROMPT='
+%F{9} » %f'
+RPROMPT='%F{12}%~%f ${vcs_info_msg_0_}'
 
 ## Completions
 
