@@ -91,3 +91,6 @@ fi
 if [ ! -z "$num_ws" ]; then
     desktop_settings
 fi
+
+# Packages to install:
+# heif-gdk-pixbuf
