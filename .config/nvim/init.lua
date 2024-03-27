@@ -5,10 +5,20 @@ vim.opt.background = 'dark'
 -- vim.g['gruvbox_bold'] = 0
 -- vim.cmd('colorscheme gruvbox')
 
-vim.cmd('packadd! gruvbox-material')
-vim.g['gruvbox_material_background'] = 'medium'
-vim.g['gruvbox_material_better_performance'] = 1
-vim.cmd('colorscheme gruvbox-material')
+-- vim.cmd('packadd! gruvbox-material')
+-- vim.g['gruvbox_material_background'] = 'medium'
+-- vim.g['gruvbox_material_better_performance'] = 1
+-- vim.cmd('colorscheme gruvbox-material')
+require('catppuccin').setup({
+  flavour = "mocha",
+  custom_highlights = function(colors)
+    return {
+      WinSeparator = { fg = colors.surface1 },
+    }
+  end
+})
+
+vim.cmd.colorscheme 'catppuccin'
 -- }}}
 
 -- Options {{{
@@ -56,7 +66,7 @@ vim.keymap.set('n', 'gp', ':bp<CR>', { silent=true })
 vim.keymap.set('n', 'gn', ':bn<CR>', { silent=true })
 vim.keymap.set('n', 'gh', '0', { silent=true })
 vim.keymap.set('n', 'gl', '$', { silent=true })
-vim.keymap.set('n', 'gs', '^', { silent=true })
+-- vim.keymap.set('n', 'gs', '^', { silent=true })
 vim.keymap.set('n', 'ga', '<C-^>', { silent=true })
 vim.keymap.set('n', '<leader>p', ':echo "use gp instead"<CR>', { silent=true })
 vim.keymap.set('n', '<leader>n', ':echo "use gn instead"<CR>', { silent=true })
@@ -151,6 +161,7 @@ vim.api.nvim_create_autocmd('FileType', {
 -- Misc Options
 vim.g['vhdl_indent_genportmap'] = false
 vim.g['c_no_curly_error'] = true
+vim.g['zig_fmt_autosave'] = false
 -- }}}
 
 -- nvim-lsp {{{
@@ -160,13 +171,15 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { silent=true })
 
 vim.diagnostic.config({
   underline = false,
+  float = { border = 'single' }
 })
+
+vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = 'single' })
+vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = 'single' })
 
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('UserLspConfig', {}),
   callback = function(ev)
-    -- vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
-
     local opts = { buffer = ev.buf }
     vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
     vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
@@ -182,7 +195,9 @@ local capabilities = require'cmp_nvim_lsp'.default_capabilities()
 
 local lspconfig = require('lspconfig')
 lspconfig.pylsp.setup { capabilities = capabilities, }
-lspconfig.ccls.setup { capabilities = capabilities, }
+-- lspconfig.ccls.setup { capabilities = capabilities, }
+lspconfig.clangd.setup { capabilities = capabilities, }
+lspconfig.vhdl_ls.setup { capabilities = capabilities, }
 lspconfig.rust_analyzer.setup {
   capabilities = capabilities,
   settings = {
@@ -291,4 +306,8 @@ require'nvim-treesitter.configs'.setup {
     additional_vim_regex_highlighting = false,
   },
 }
+-- }}}
+
+-- leap.nvim {{{
+require'leap'.create_default_mappings()
 -- }}}
