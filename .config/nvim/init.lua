@@ -5,10 +5,11 @@ vim.opt.background = 'dark'
 -- vim.g['gruvbox_bold'] = 0
 -- vim.cmd('colorscheme gruvbox')
 
--- vim.cmd('packadd! gruvbox-material')
--- vim.g['gruvbox_material_background'] = 'medium'
--- vim.g['gruvbox_material_better_performance'] = 1
--- vim.cmd('colorscheme gruvbox-material')
+vim.cmd('packadd! gruvbox-material')
+vim.g['gruvbox_material_background'] = 'medium'
+vim.g['gruvbox_material_better_performance'] = 1
+vim.cmd('colorscheme gruvbox-material')
+
 require('catppuccin').setup({
   flavour = "mocha",
   custom_highlights = function(colors)
@@ -17,8 +18,7 @@ require('catppuccin').setup({
     }
   end
 })
-
-vim.cmd.colorscheme 'catppuccin'
+-- vim.cmd.colorscheme 'catppuccin'
 -- }}}
 
 -- Options {{{
@@ -106,6 +106,14 @@ vim.api.nvim_create_autocmd('FileType', {
 })
 
 vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'python',
+  group = ftaugroup,
+  callback = function()
+    vim.opt_local.formatoptions = { c = true, q = true, r = true, j = true }
+  end
+})
+
+vim.api.nvim_create_autocmd('FileType', {
   pattern = 'c,cpp',
   group = ftaugroup,
   callback = function()
@@ -146,6 +154,15 @@ vim.api.nvim_create_autocmd('FileType', {
     vim.keymap.set({ 'n', 'v' }, '<leader>:', ':Tabularize /:<CR>', { buffer = true })
     vim.keymap.set({ 'n', 'v' }, '<leader>>', ':Tabularize /=><CR>', { buffer = true })
     vim.keymap.set({ 'n', 'v' }, '<leader><', ':Tabularize /<=<CR>', { buffer = true })
+  end
+})
+
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'spade',
+  group = ftaugroup,
+  callback = function()
+    vim.opt_local.commentstring = '// %s'
+    vim.opt_local.formatoptions = { c = true, q = true, r = true, j = true }
   end
 })
 
@@ -194,10 +211,26 @@ vim.api.nvim_create_autocmd('LspAttach', {
 local capabilities = require'cmp_nvim_lsp'.default_capabilities()
 
 local lspconfig = require('lspconfig')
-lspconfig.pylsp.setup { capabilities = capabilities, }
--- lspconfig.ccls.setup { capabilities = capabilities, }
+lspconfig.pylsp.setup {
+  capabilities = capabilities,
+  settings = {
+    pylsp = {
+      plugins = {
+        ["black"] = {
+          enabled = true,
+        },
+      },
+    },
+  },
+}
 lspconfig.clangd.setup { capabilities = capabilities, }
 lspconfig.vhdl_ls.setup { capabilities = capabilities, }
+-- lspconfig.metals.setup { capabilities = capabilities, }
+lspconfig.zls.setup {
+  capabilities = capabilities,
+  cmd = { '/home/mattias/src/github.com/zls/zig-out/bin/zls' },
+}
+lspconfig.nimls.setup { capabilities = capabilities, }
 lspconfig.rust_analyzer.setup {
   capabilities = capabilities,
   settings = {

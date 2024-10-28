@@ -100,3 +100,5 @@ export FZF_DEFAULT_OPTS="--multi --inline-info --reverse"
 [ -f /etc/zsh_command_not_found ] && source /etc/zsh_command_not_found
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+[ -f ~/.cargo/env ] && source ~/.cargo/env
