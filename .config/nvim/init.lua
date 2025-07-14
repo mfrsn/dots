@@ -10,6 +10,11 @@ vim.g['gruvbox_material_background'] = 'medium'
 vim.g['gruvbox_material_better_performance'] = 1
 vim.cmd('colorscheme gruvbox-material')
 
+vim.cmd('packadd! everforest')
+vim.g['everforest_background'] = 'medium'
+vim.g['everforest_better_performance'] = 1
+-- vim.cmd('colorscheme everforest')
+
 require('catppuccin').setup({
   flavour = "mocha",
   custom_highlights = function(colors)
@@ -18,7 +23,7 @@ require('catppuccin').setup({
     }
   end
 })
--- vim.cmd.colorscheme 'catppuccin'
+-- vim.cmd.colorscheme('catppuccin-mocha')
 -- }}}
 
 -- Options {{{
@@ -85,6 +90,11 @@ local map = {
   {'¨', ']'},
   {'Å', '{'},
   {'^', '}'},
+  -- Not really US but close enough
+  {'Ö', '{'},
+  {'Ä', '}'},
+  {'ö', '['},
+  {'ä', ']'},
 }
 
 for _, v in ipairs(map) do
@@ -149,8 +159,9 @@ vim.api.nvim_create_autocmd('FileType', {
     vim.opt_local.shiftwidth = 2
     vim.opt_local.softtabstop = 2
     vim.opt_local.commentstring = '-- %s'
-    vim.opt_local.comments:append({ ':--', 'b:--' })
-    vim.opt_local.formatoptions = { c = true, q = true, r = true, j = true }
+    vim.opt_local.comments:append({ ':---', ':--!', ':--' })
+    vim.opt_local.formatoptions = { c = true, r = true, o = true, q = true, n = true, l = true, j = true }
+    vim.opt_local.textwidth = 99
     vim.keymap.set({ 'n', 'v' }, '<leader>:', ':Tabularize /:<CR>', { buffer = true })
     vim.keymap.set({ 'n', 'v' }, '<leader>>', ':Tabularize /=><CR>', { buffer = true })
     vim.keymap.set({ 'n', 'v' }, '<leader><', ':Tabularize /<=<CR>', { buffer = true })
@@ -188,60 +199,95 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { silent=true })
 
 vim.diagnostic.config({
   underline = false,
-  float = { border = 'single' }
+  float = { border = "single" }
 })
 
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = 'single' })
-vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = 'single' })
+-- vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "single" })
+-- vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = "single" })
 
-vim.api.nvim_create_autocmd('LspAttach', {
-  group = vim.api.nvim_create_augroup('UserLspConfig', {}),
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("UserLspConfig", {}),
   callback = function(ev)
     local opts = { buffer = ev.buf }
-    vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
-    vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
-    vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
-    vim.keymap.set('n', 'gy', vim.lsp.buf.type_definition, opts)
-    vim.keymap.set('n', '<leader>k', vim.lsp.buf.hover, opts)
-    vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, opts)
-    vim.keymap.set('n', '<leader>a', vim.lsp.buf.code_action, opts)
+    vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+    vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+    vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+    vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, opts)
+    vim.keymap.set("n", "<leader>k", function() vim.lsp.buf.hover({ border = "single" }) end, opts)
+    vim.keymap.set("i", "<C-s>", function() vim.lsp.buf.signature_help({ border = "single" }) end, opts)
+    vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, opts)
+    vim.keymap.set("n", "<leader>a", vim.lsp.buf.code_action, opts)
   end,
 })
 
 local capabilities = require'cmp_nvim_lsp'.default_capabilities()
 
-local lspconfig = require('lspconfig')
-lspconfig.pylsp.setup {
+vim.lsp.enable("pylsp")
+vim.lsp.config("pylsp", {
   capabilities = capabilities,
   settings = {
-    pylsp = {
+    ["pylsp"] = {
       plugins = {
-        ["black"] = {
-          enabled = true,
-        },
+        flake8 = { enabled = true, maxLineLength = 120, },
+        pycodestyle = { enabled = true, maxLineLength = 120, },
+        autopep8 = { enabled = false, },
       },
     },
   },
-}
-lspconfig.clangd.setup { capabilities = capabilities, }
-lspconfig.vhdl_ls.setup { capabilities = capabilities, }
--- lspconfig.metals.setup { capabilities = capabilities, }
-lspconfig.zls.setup {
+})
+
+vim.lsp.enable("rust_analyzer")
+vim.lsp.config("rust_analyzer", {
   capabilities = capabilities,
-  cmd = { '/home/mattias/src/github.com/zls/zig-out/bin/zls' },
-}
-lspconfig.nimls.setup { capabilities = capabilities, }
-lspconfig.rust_analyzer.setup {
-  capabilities = capabilities,
+  -- cmd = { os.getenv("HOME") .. "/.cargo/bin/rust-analyzer" },
   settings = {
     ["rust-analyzer"] = {
-      checkOnSave = { allTargets = false },
+      checkOnSave = false,
       assist = {
         importGranularity = "item",
       },
     },
   },
-}
+})
+
+vim.lsp.enable("clangd")
+vim.lsp.config("clangd", {
+  capabilities = capabilities,
+})
+
+-- local lspconfig = require('lspconfig')
+-- lspconfig.pylsp.setup {
+--   capabilities = capabilities,
+--   settings = {
+--     pylsp = {
+--       plugins = {
+--         ["black"] = {
+--           enabled = true,
+--         },
+--       },
+--     },
+--   },
+-- }
+-- lspconfig.clangd.setup { capabilities = capabilities, }
+-- lspconfig.vhdl_ls.setup { capabilities = capabilities, }
+-- -- lspconfig.metals.setup { capabilities = capabilities, }
+-- lspconfig.zls.setup {
+--   capabilities = capabilities,
+--   cmd = { '/home/mattias/src/github.com/zls/zig-out/bin/zls' },
+-- }
+-- lspconfig.nimls.setup { capabilities = capabilities, }
+-- lspconfig.rust_analyzer.setup {
+--   capabilities = capabilities,
+--   cmd = { os.getenv("HOME") .. "/.cargo/bin/rust-analyzer" },
+--   settings = {
+--     ["rust-analyzer"] = {
+--       checkOnSave = { allTargets = false },
+--       assist = {
+--         importGranularity = "item",
+--       },
+--     },
+--   },
+-- }
 -- }}}
 
 -- nvim-cmp {{{
